@@ -271,7 +271,7 @@ void esp_native_code_init(void) {
     esp_native_code_erased = 0;
 }
 
-void *esp_native_code_commit(void *buf, size_t len, void *reloc) {
+void *esp_native_code_commit(const void *buf, size_t len, void *reloc) {
     // printf("COMMIT(buf=%p, len=%u, start=%08x, cur=%08x, end=%08x, erased=%08x)\n", buf, len, esp_native_code_start, esp_native_code_cur, esp_native_code_end, esp_native_code_erased);
 
     len = (len + 3) & ~3;
@@ -304,7 +304,7 @@ void *esp_native_code_commit(void *buf, size_t len, void *reloc) {
         }
         ets_loop_iter();
         if (res == SPI_FLASH_RESULT_OK) {
-            res = spi_flash_write(esp_native_code_cur, buf, len);
+            res = spi_flash_write(esp_native_code_cur, (void *)buf, len);
             ets_loop_iter();
         }
         if (res != SPI_FLASH_RESULT_OK) {

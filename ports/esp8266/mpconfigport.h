@@ -141,7 +141,7 @@ typedef uint32_t sys_prot_t; // for modlwip
 // ssize_t, off_t as required by POSIX-signatured functions in stream.h
 #include <sys/types.h>
 
-void *esp_native_code_commit(void *, size_t, void *);
+void *esp_native_code_commit(const void *, size_t, void *);
 #define MP_PLAT_COMMIT_EXEC(buf, len, reloc) esp_native_code_commit(buf, len, reloc)
 
 // printer for debugging output, goes to UART only

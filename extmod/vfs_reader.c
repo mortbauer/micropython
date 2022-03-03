@@ -69,13 +69,23 @@ STATIC void mp_reader_vfs_close(void *data) {
     m_del_obj(mp_reader_vfs_t, reader);
 }
 
+#include "extmod/vfs_map.h"
 void mp_reader_new_file(mp_reader_t *reader, qstr filename) {
-    mp_reader_vfs_t *rf = m_new_obj(mp_reader_vfs_t);
     mp_obj_t args[2] = {
         MP_OBJ_NEW_QSTR(filename),
         MP_OBJ_NEW_QSTR(MP_QSTR_rb),
     };
-    rf->file = mp_vfs_open(MP_ARRAY_SIZE(args), &args[0], (mp_map_t *)&mp_const_empty_map);
+    mp_obj_t file = mp_vfs_open(MP_ARRAY_SIZE(args), &args[0], (mp_map_t *)&mp_const_empty_map);
+
+    #if MICROPY_VFS_MAP
+    if (mp_obj_get_type(file) == &mp_type_vfs_map_fileio) {
+        return mp_vfs_map_new_reader(reader, file);
+    }
+    #endif
+
+    mp_reader_vfs_t *rf = m_new_obj(mp_reader_vfs_t);
+    rf->file = file;
+
     int errcode;
     rf->len = mp_stream_rw(rf->file, rf->buf, sizeof(rf->buf), &errcode, MP_STREAM_RW_READ | MP_STREAM_RW_ONCE);
     if (errcode != 0) {
