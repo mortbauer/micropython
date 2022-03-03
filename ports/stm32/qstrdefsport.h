@@ -32,6 +32,7 @@ Q(/flash)
 Q(/flash/lib)
 Q(/sd)
 Q(/sd/lib)
+Q(/mapfs)
 
 // For os.sep
 Q(/)
