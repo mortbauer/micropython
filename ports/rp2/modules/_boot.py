@@ -1,5 +1,10 @@
-import os
+import os, sys
 import machine, rp2
+
+
+mapfs = rp2.Flash("mapfs")
+os.mount(os.VfsMap(mapfs.ioctl(0x100, 0), mapfs), "/mapfs")
+sys.path.insert(0, "/mapfs")
 
 
 # Try to mount the filesystem, and format the flash if it doesn't exist.
@@ -12,4 +17,4 @@ except:
     vfs = os.VfsLfs2(bdev, progsize=256)
 os.mount(vfs, "/")
 
-del os, bdev, vfs
+del os, mapfs, bdev, vfs
