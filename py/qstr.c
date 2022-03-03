@@ -276,7 +276,7 @@ qstr qstr_from_str(const char *str) {
     return qstr_from_strn(str, strlen(str));
 }
 
-qstr qstr_from_strn(const char *str, size_t len) {
+STATIC qstr qstr_from_strn_helper(const char *str, size_t len, bool is_static) {
     QSTR_ENTER();
     qstr q = qstr_find_strn(str, len);
     if (q == 0) {
@@ -288,6 +288,9 @@ qstr qstr_from_strn(const char *str, size_t len) {
             mp_raise_msg(&mp_type_RuntimeError, MP_ERROR_TEXT("name too long"));
         }
 
+        if (is_static) {
+            assert(str[len] == '\0');
+        } else {
         // compute number of bytes needed to intern this string
         size_t n_bytes = len + 1;
 
@@ -327,15 +330,23 @@ qstr qstr_from_strn(const char *str, size_t len) {
         // allocate memory from the chunk for this new interned string's data
         char *q_ptr = MP_STATE_VM(qstr_last_chunk) + MP_STATE_VM(qstr_last_used);
         MP_STATE_VM(qstr_last_used) += n_bytes;
+        memcpy(q_ptr, str, len);
+        q_ptr[len] = '\0';
+        str = q_ptr;
+        }
 
         // store the interned strings' data
         size_t hash = qstr_compute_hash((const byte *)str, len);
-        memcpy(q_ptr, str, len);
-        q_ptr[len] = '\0';
-        q = qstr_add(hash, len, q_ptr);
+        q = qstr_add(hash, len, str);
     }
     QSTR_EXIT();
     return q;
+}
+qstr qstr_from_strn(const char *str, size_t len) {
+    return qstr_from_strn_helper(str, len, false);
+}
+qstr qstr_from_strn_static(const char *str, size_t len) {
+    return qstr_from_strn_helper(str, len, true);
 }
 
 mp_uint_t qstr_hash(qstr q) {
