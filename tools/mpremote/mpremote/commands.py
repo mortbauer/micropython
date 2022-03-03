@@ -259,3 +259,38 @@ def do_rtc(state, args):
         _do_execbuffer(state, "import machine; machine.RTC().datetime({})".format(timetuple), True)
     else:
         _do_execbuffer(state, "import machine; print(machine.RTC().datetime())", True)
+
+
+def do_deploy_mapfs(state, args):
+    pyb.exec_("import uos; mapfs = uos.mount('/mapfs')")
+    if pyb.eval("mapfs") == b'None':
+        print(f"/mapfs does not exist on device")
+        sys.exit(1)
+    if pyb.eval("mapfs.device()") == b'None':
+        print(f"/mapfs does not have an associated device")
+        sys.exit(1)
+    pyb.exec_("dev=mapfs.device()")
+    block_count = int(str(pyb.eval("dev.ioctl(4,0)"), "ascii"))
+    block_size = int(str(pyb.eval("dev.ioctl(5,0)"), "ascii"))
+    print(f"/mapfs is a block device of size {block_count}*{block_size}={block_count * block_size} bytes")
+
+    mapfs = make_mapfs(args.path[0], "/")
+    print(f"Image size is {len(mapfs)} bytes")
+
+    if len(mapfs) > block_count * block_size:
+        print(f"/mapfs is too small for image")
+        sys.exit(1)
+
+    pyb.exec_(f"buf=bytearray({block_size})")
+    for block in range(0, (len(mapfs) + block_size - 1) // block_size):
+        mapfs_block = mapfs[block * block_size : (block + 1) * block_size]
+        off = 0
+        while off < len(mapfs_block):
+            l = min(len(mapfs_block) - off, 256)
+            pyb.exec_(f"buf[{off}:{off+l}]=" + repr(mapfs_block[off:off+l]))
+            off += l
+        print(f"\rWriting block {block}", end="")
+        pyb.exec_(f"dev.writeblocks({block},buf)")
+
+    print()
+    print(f"Image deployed")
