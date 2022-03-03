@@ -269,6 +269,7 @@ STATIC mp_obj_t esp32_partition_mmap(mp_obj_t self_in) {
     esp32_partition_obj_t *self = MP_OBJ_TO_PTR(self_in);
     const void *ptr;
     spi_flash_mmap_handle_t handle;
+    // TODO need to spi_flash_unmmap(handle) on soft reset
     check_esp_err(esp_partition_mmap(self->part, 0, self->part->size, SPI_FLASH_MMAP_DATA, &ptr, &handle));
     return mp_obj_new_memoryview('B', self->part->size, (void *)ptr);
 }
