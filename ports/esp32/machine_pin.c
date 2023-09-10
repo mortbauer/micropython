@@ -283,6 +283,83 @@ STATIC mp_obj_t machine_pin_on(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_pin_on_obj, machine_pin_on);
 
+// pin.rtc_init()
+STATIC mp_obj_t machine_pin_rtc_init(mp_obj_t self_in) {
+    machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
+        rtc_gpio_init(PIN_OBJ_INDEX(self));
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_pin_rtc_init_obj, machine_pin_rtc_init);
+
+// pin.rtc_set_direction(direction)
+STATIC mp_obj_t machine_pin_rtc_set_direction(mp_obj_t self_in,mp_obj_t pin_io_mode_in) {
+    mp_int_t pin_io_mode = mp_obj_get_int(pin_io_mode_in);
+    machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
+        rtc_gpio_set_direction(PIN_OBJ_INDEX(self),pin_io_mode);
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_set_direction_obj, machine_pin_rtc_set_direction);
+
+// pin.rtc_set_level(level)
+STATIC mp_obj_t machine_pin_rtc_set_level(mp_obj_t self_in,mp_obj_t level_in) {
+    mp_int_t level = mp_obj_get_int(level_in);
+    machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
+        rtc_gpio_set_level(PIN_OBJ_INDEX(self), level);
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_set_level_obj, machine_pin_rtc_set_level);
+
+// pin.rtc_pullup(state)
+STATIC mp_obj_t machine_pin_rtc_pullup(mp_obj_t self_in,mp_obj_t onoff_in) {
+    mp_int_t onoff = mp_obj_get_int(onoff_in);
+    machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
+        if (onoff){
+            rtc_gpio_pullup_en(PIN_OBJ_INDEX(self));
+        } else {
+            rtc_gpio_pullup_dis(PIN_OBJ_INDEX(self));
+        }
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_pullup_obj, machine_pin_rtc_pullup);
+
+// pin.rtc_pulldown(state)
+STATIC mp_obj_t machine_pin_rtc_pulldown(mp_obj_t self_in,mp_obj_t onoff_in) {
+    mp_int_t onoff = mp_obj_get_int(onoff_in);
+    machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
+        if (onoff){
+            rtc_gpio_pulldown_en(PIN_OBJ_INDEX(self));
+        } else {
+            rtc_gpio_pulldown_dis(PIN_OBJ_INDEX(self));
+        }
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_pulldown_obj, machine_pin_rtc_pulldown);
+
+// pin.rtc_hold(state)
+STATIC mp_obj_t machine_pin_rtc_hold(mp_obj_t self_in,mp_obj_t onoff_in) {
+    mp_int_t onoff = mp_obj_get_int(onoff_in);
+    machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
+        if (onoff){
+            rtc_gpio_hold_en(PIN_OBJ_INDEX(self));
+        } else {
+            rtc_gpio_hold_dis(PIN_OBJ_INDEX(self));
+        }
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_hold_obj, machine_pin_rtc_hold);
+
 // pin.irq(handler=None, trigger=IRQ_FALLING|IRQ_RISING)
 STATIC mp_obj_t machine_pin_irq(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_handler, ARG_trigger, ARG_wake };
@@ -362,6 +439,12 @@ STATIC const mp_rom_map_elem_t machine_pin_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_value), MP_ROM_PTR(&machine_pin_value_obj) },
     { MP_ROM_QSTR(MP_QSTR_off), MP_ROM_PTR(&machine_pin_off_obj) },
     { MP_ROM_QSTR(MP_QSTR_on), MP_ROM_PTR(&machine_pin_on_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rtc_init), MP_ROM_PTR(&machine_pin_rtc_init_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rtc_set_direction), MP_ROM_PTR(&machine_pin_rtc_set_direction_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rtc_set_level), MP_ROM_PTR(&machine_pin_rtc_set_level_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rtc_pullup), MP_ROM_PTR(&machine_pin_rtc_pullup_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rtc_pulldown), MP_ROM_PTR(&machine_pin_rtc_pulldown_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rtc_hold), MP_ROM_PTR(&machine_pin_rtc_hold_obj) },
     { MP_ROM_QSTR(MP_QSTR_irq), MP_ROM_PTR(&machine_pin_irq_obj) },
 
     // class attributes
