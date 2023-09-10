@@ -1,3 +1,4 @@
+
 # Set location of base MicroPython directory.
 if(NOT MICROPY_DIR)
     get_filename_component(MICROPY_DIR ${CMAKE_CURRENT_LIST_DIR}/../.. ABSOLUTE)
@@ -22,6 +23,8 @@ if(NOT CMAKE_BUILD_EARLY_EXPANSION)
     include(${MICROPY_DIR}/py/usermod.cmake)
     include(${MICROPY_DIR}/extmod/extmod.cmake)
 endif()
+
+# include(/home/martin/workspace/luchsio/esp32/micropython-docker/micropython-modules/camera/micropython.cmake)
 
 list(APPEND MICROPY_QSTRDEFS_PORT
     ${MICROPY_PORT_DIR}/qstrdefsport.h
@@ -101,6 +104,7 @@ list(APPEND MICROPY_SOURCE_QSTR
 )
 
 list(APPEND IDF_COMPONENTS
+    esp32-camera
     app_update
     bootloader_support
     bt
@@ -134,6 +138,8 @@ list(APPEND IDF_COMPONENTS
     ulp
     vfs
 )
+
+# message(STATUS "REGISTER idf ---------------------------------------------- components ${IDF_COMPONENTS}")
 
 # Register the main IDF component.
 idf_component_register(
@@ -190,8 +196,8 @@ target_include_directories(${MICROPY_TARGET} PUBLIC
 )
 
 # Add additional extmod and usermod components.
-target_link_libraries(${MICROPY_TARGET} micropy_extmod_btree)
-target_link_libraries(${MICROPY_TARGET} usermod)
+target_link_libraries(${MICROPY_TARGET} PRIVATE micropy_extmod_btree)
+target_link_libraries(${MICROPY_TARGET} PRIVATE usermod)
 
 # Collect all of the include directories and compile definitions for the IDF components,
 # including those added by the IDF Component Manager via idf_components.yaml.
@@ -229,3 +235,46 @@ add_custom_command(
     VERBATIM
     COMMAND_EXPAND_LISTS
 )
+
+# Include riscv ulp code if exists in ulp_riscv sub directory
+if(EXISTS ${PROJECT_DIR}/ulp_riscv/main.c)
+    set(ulp_app_name ulp_main)
+    # set(ulp_app_name ${COMPONENT_NAME})
+    set(ulp_sources "${PROJECT_DIR}/ulp_riscv/main.c")
+    set(ulp_exp_dep_srcs "${PROJECT_DIR}/main.c" "${PROJECT_DIR}/esp32_ulp.c")
+
+    ulp_embed_binary(${ulp_app_name} "${ulp_sources}" "${ulp_exp_dep_srcs}")
+endif()
+
+# Generate ULP variable constants
+if(EXISTS ${PROJECT_DIR}/ulp_riscv/main.c)
+    # add_dependencies(${COMPONENT_LIB} ulp_main_additional_artifacts)
+    add_custom_command(
+      OUTPUT 
+        ${MICROPY_GENHDR_DIR}/esp32_ulpconst_qstr.h 
+        ${MICROPY_GENHDR_DIR}/esp32_ulpconst_mpz.h 
+        ${MICROPY_GENHDR_DIR}/ulp_main.h
+      COMMAND python ${PROJECT_DIR}/make-esp32ulpconst.py ${ulp_app_name}/${ulp_app_name}.ld --qstr ${MICROPY_GENHDR_DIR}/esp32_ulpconst_qstr.h --mpz ${MICROPY_GENHDR_DIR}/esp32_ulpconst_mpz.h --header ${MICROPY_GENHDR_DIR}/ulp_main.h
+      DEPENDS ulp_main_artifacts
+      COMMENT "Parsing ULP headers"
+      VERBATIM
+      )
+      # add_executable(${COMPONENT_LIB} ${MICROPY_GENHDR_DIR}/ulp_main.h)
+      # set_source_files_properties(${PROJECT_DIR}/esp32_ulp.c PROPERTIES OBJECT_DEPENDS genhdr/ulp_main.h)
+      add_custom_target(ulp_main_additional_artifacts DEPENDS ${MICROPY_GENHDR_DIR}/ulp_main.h)
+      add_dependencies(${MICROPY_TARGET} ulp_main_additional_artifacts)
+      # set_source_files_properties(${PROJECT_DIR}/esp32_ulp.c PROPERTIES OBJECT_DEPENDS ulp_main_additional_artifacts)
+      # add_dependencies(${COMPONENT_LIB} ulp_main_additional_artifacts)
+      # set_source_files_properties(${MICROPY_GENHDR_DIR}/ulp_main.h PROPERTIES GENERATED 1)
+      # set_property(SOURCE esp32_ulp.cA APPEND PROPERTY OBJECT_DEPENDS ${MICROPY_GENHDR_DIR}/ulp_main.h)
+
+    # add_custom_target(${ulp_app_name}_genhdr DEPENDS ${ulp_app_name})
+    # add_dependencies(${COMPONENT_LIB} ${ulp_app_name}_genhdr)
+    # add_dependencies(${COMPONENT_LIB} ${MICROPY_GENHDR_DIR}/esp32_ulpconst_qstr.h)
+
+   # add_library(ULP_CONST INTERFACE ${MICROPY_GENHDR_DIR}/esp32_ulpconst_qstr.h)
+endif() 
+
+# add_custom_target(graphviz ALL
+#                   "${CMAKE_COMMAND}" "--graphviz=micropython.dot" .
+#                   WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
