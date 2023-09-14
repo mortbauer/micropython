@@ -46,24 +46,32 @@ def parse_file(filename):
 def main():
     cmd_parser = argparse.ArgumentParser(description="Extract ULP constants from a C header file.")
     cmd_parser.add_argument("file", nargs=1, help="input file")
+
+    cmd_parser.add_argument(
+        "-d",
+        "--output-dir",
+        dest="output_dir",
+        default="build",
+        help="Specify the output dir for all files"
+    )
     cmd_parser.add_argument(
         "-q",
         "--qstr",
         dest="qstr_filename",
-        default="build/esp32_ulpconst_qstr.h",
+        default="esp32_ulpconst_qstr.h",
         help="Specified the name of the generated qstr header file",
     )
     cmd_parser.add_argument(
         "-m",
         "--mpz",
         dest="mpz_filename",
-        default="build/esp32_ulpconst_mpz.h",
+        default="esp32_ulpconst_mpz.h",
         help="the destination file of the generated mpz header",
     )
     cmd_parser.add_argument(
         "--header",
         dest="header_filename",
-        default="build/ulp_main.h",
+        default="ulp_main.h",
         help="the destination file of the generated header",
     )
     args = cmd_parser.parse_args()
@@ -73,7 +81,12 @@ def main():
     print("// Automatically generated from %s by make-esp32ulpconst.py" % args.file[0])
     print("")
 
-    with open(args.qstr_filename, "wt") as h_file:
+    if not os.path.isdir(args.output_dir):
+        try:
+            os.makedirs(args.output_dir)
+        except FileExistsError:
+            pass
+    with open(os.path.join(args.output_dir,args.qstr_filename), "wt") as h_file:
         for key, value in shared_variables.items():
             assert 0 <= int(value, 16) <= 0xFFFFFFFF
             print(
@@ -84,7 +97,7 @@ def main():
                 file=h_file,
             )
 
-    with open(args.mpz_filename, "wt") as mpz_file:
+    with open(os.path.join(args.output_dir,args.mpz_filename), "wt") as mpz_file:
         for key, value in shared_variables.items():
             print(
                 "{MP_ROM_QSTR(MP_QSTR_%s), MP_ROM_PTR( & mpz_%08x)},"
@@ -93,10 +106,11 @@ def main():
             )
 
     with open(os.path.splitext(args.file[0])[0]+'.h','rb') as _inf:
-        with open(args.header_filename, "wb") as header_file:
+        with open(os.path.join(args.output_dir,args.header_filename), "wb") as header_file:
             header_file.write(_inf.read())
     #{MP_ROM_QSTR(MP_QSTR_VOLTAGE), MP_ROM_PTR( & mpz_50000130)},
 
+    print('aAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
     return shared_variables
 
 if __name__ == "__main__":
