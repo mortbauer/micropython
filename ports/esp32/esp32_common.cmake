@@ -1,4 +1,7 @@
 
+set(ULP_GENHDR_DIR "${CMAKE_BINARY_DIR}/ulp_genhdr")
+set(ULP_MAIN_HEADER "${ULP_GENHDR_DIR}/ulp_my_main.h")
+
 # Set location of base MicroPython directory.
 if(NOT MICROPY_DIR)
     get_filename_component(MICROPY_DIR ${CMAKE_CURRENT_LIST_DIR}/../.. ABSOLUTE)
@@ -140,8 +143,6 @@ list(APPEND IDF_COMPONENTS
     vfs
 )
 
-# message(STATUS "REGISTER idf ---------------------------------------------- components ${IDF_COMPONENTS}")
-
 # Register the main IDF component.
 idf_component_register(
     SRCS
@@ -205,6 +206,16 @@ foreach(comp ${__COMPONENT_NAMES_RESOLVED})
     micropy_gather_target_properties(${comp})
 endforeach()
 
+
+# Include riscv ulp code if exists in ulp_riscv sub directory
+if(EXISTS ${PROJECT_DIR}/ulp_riscv/main.c)
+    list(APPEND MICROPY_SOURCE_QSTR ${ULP_MAIN_HEADER})
+    set(ulp_app_name ulp_main)
+    set(ulp_sources "${PROJECT_DIR}/ulp_riscv/main.c")
+    set(ulp_exp_dep_srcs "${PROJECT_DIR}/main.c" "${PROJECT_DIR}/esp32_ulp.c")
+    ulp_embed_binary(${ulp_app_name} "${ulp_sources}" "${ulp_exp_dep_srcs}")
+endif()
+
 # Include the main MicroPython cmake rules.
 include(${MICROPY_DIR}/py/mkrules.cmake)
 
@@ -235,45 +246,27 @@ add_custom_command(
     COMMAND_EXPAND_LISTS
 )
 
-# Include riscv ulp code if exists in ulp_riscv sub directory
-if(EXISTS ${PROJECT_DIR}/ulp_riscv/main.c)
-    set(ulp_app_name ulp_main)
-    # set(ulp_app_name ${COMPONENT_NAME})
-    set(ulp_sources "${PROJECT_DIR}/ulp_riscv/main.c")
-    set(ulp_exp_dep_srcs "${PROJECT_DIR}/main.c" "${PROJECT_DIR}/esp32_ulp.c")
-
-    ulp_embed_binary(${ulp_app_name} "${ulp_sources}" "${ulp_exp_dep_srcs}")
-endif()
-
 # Generate ULP variable constants
 if(EXISTS ${PROJECT_DIR}/ulp_riscv/main.c)
-    # add_dependencies(${COMPONENT_LIB} ulp_main_additional_artifacts)
-    add_custom_command(
-      OUTPUT 
-        ${MICROPY_GENHDR_DIR}/esp32_ulpconst_qstr.h 
-        ${MICROPY_GENHDR_DIR}/esp32_ulpconst_mpz.h 
-        ${MICROPY_GENHDR_DIR}/ulp_main.h
-      COMMAND python ${PROJECT_DIR}/make-esp32ulpconst.py ${ulp_app_name}/${ulp_app_name}.ld --qstr ${MICROPY_GENHDR_DIR}/esp32_ulpconst_qstr.h --mpz ${MICROPY_GENHDR_DIR}/esp32_ulpconst_mpz.h --header ${MICROPY_GENHDR_DIR}/ulp_main.h
-      DEPENDS ulp_main_artifacts
-      COMMENT "Parsing ULP headers"
-      VERBATIM
+      target_include_directories(${MICROPY_TARGET} PRIVATE ${CMAKE_BINARY_DIR})
+      add_custom_command(
+          OUTPUT ${ULP_MAIN_HEADER}
+          COMMAND python ${PROJECT_DIR}/make-esp32ulpconst.py ${ulp_app_name}/${ulp_app_name}.ld -d ${ULP_GENHDR_DIR} --header ulp_my_main.h
+          DEPENDS ulp_main_artifacts
+          COMMENT "Parsing ULP headers"
+          VERBATIM
       )
-      # add_executable(${COMPONENT_LIB} ${MICROPY_GENHDR_DIR}/ulp_main.h)
-      # set_source_files_properties(${PROJECT_DIR}/esp32_ulp.c PROPERTIES OBJECT_DEPENDS genhdr/ulp_main.h)
-      add_custom_target(ulp_main_additional_artifacts DEPENDS ${MICROPY_GENHDR_DIR}/ulp_main.h)
-      add_dependencies(${MICROPY_TARGET} ulp_main_additional_artifacts)
-      # set_source_files_properties(${PROJECT_DIR}/esp32_ulp.c PROPERTIES OBJECT_DEPENDS ulp_main_additional_artifacts)
-      # add_dependencies(${COMPONENT_LIB} ulp_main_additional_artifacts)
-      # set_source_files_properties(${MICROPY_GENHDR_DIR}/ulp_main.h PROPERTIES GENERATED 1)
-      # set_property(SOURCE esp32_ulp.cA APPEND PROPERTY OBJECT_DEPENDS ${MICROPY_GENHDR_DIR}/ulp_main.h)
-
-    # add_custom_target(${ulp_app_name}_genhdr DEPENDS ${ulp_app_name})
-    # add_dependencies(${COMPONENT_LIB} ${ulp_app_name}_genhdr)
-    # add_dependencies(${COMPONENT_LIB} ${MICROPY_GENHDR_DIR}/esp32_ulpconst_qstr.h)
-
-   # add_library(ULP_CONST INTERFACE ${MICROPY_GENHDR_DIR}/esp32_ulpconst_qstr.h)
+      add_custom_target(ulp_main_additional_artifacts 
+          COMMAND echo "This is ALL target 'zoo', and it depends on "
+          DEPENDS ${ULP_MAIN_HEADER}
+          VERBATIM
+      )
+      target_sources(${MICROPY_TARGET} PRIVATE ${ULP_MAIN_HEADER})
+      add_dependencies(__idf_ulp ulp_main_additional_artifacts)
+      set_source_files_properties(${ulp_exp_dep_srcs} PROPERTIES OBJECT_DEPENDS ${ULP_MAIN_HEADER})
+      set_property(SOURCE ${ulp_exp_dep_srcs} APPEND PROPERTY OBJECT_DEPENDS ${ULP_MAIN_HEADER})
 endif() 
 
-# add_custom_target(graphviz ALL
-#                   "${CMAKE_COMMAND}" "--graphviz=micropython.dot" .
-#                   WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+add_custom_target(graphviz ALL
+      "${CMAKE_COMMAND}" "--graphviz=micropython.dot" .
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
