@@ -251,7 +251,7 @@ if(EXISTS ${PROJECT_DIR}/ulp_riscv/main.c)
       target_include_directories(${MICROPY_TARGET} PRIVATE ${CMAKE_BINARY_DIR})
       add_custom_command(
           OUTPUT ${ULP_MAIN_HEADER}
-          COMMAND python ${PROJECT_DIR}/make-esp32ulpconst.py ${ulp_app_name}/${ulp_app_name}.ld -d ${ULP_GENHDR_DIR} --header ulp_my_main.h
+          COMMAND python ${PROJECT_DIR}/make-esp32ulpconst.py create-for-embedded ${ulp_app_name}/${ulp_app_name}.ld -d ${ULP_GENHDR_DIR} --header ulp_my_main.h
           DEPENDS ulp_main_artifacts
           COMMENT "Parsing ULP headers"
           VERBATIM
