@@ -132,11 +132,40 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_3(esp32_ulp_set_wakeup_period_obj, esp32_ulp_set_
     }
     STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_run_obj, esp32_ulp_riscv_run);
 
-    #include "ulp_genhdr/ulp_my_main.h"
-    STATIC mp_obj_t esp32_ulp_riscv_get_var(mp_obj_t self_in) {
-        return MP_OBJ_NEW_SMALL_INT(ulp_spi_result);
+    // STATIC mp_obj_t esp32_ulp_riscv_reset(mp_obj_t self_in) {
+    //
+    //     ulp_riscv_reset();
+    //     return mp_const_none;
+    // }
+    // STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_reset_obj, esp32_ulp_riscv_reset);
+
+    STATIC mp_obj_t esp32_ulp_riscv_halt(mp_obj_t self_in) {
+
+        ulp_riscv_halt();
+        return mp_const_none;
     }
-    STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_get_var_obj, esp32_ulp_riscv_get_var);
+    STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_halt_obj, esp32_ulp_riscv_halt);
+
+    STATIC mp_obj_t esp32_ulp_riscv_timer_stop(mp_obj_t self_in) {
+
+        ulp_riscv_timer_stop();
+        return mp_const_none;
+    }
+    STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_timer_stop_obj, esp32_ulp_riscv_timer_stop);
+
+
+    STATIC mp_obj_t esp32_ulp_riscv_timer_resume(mp_obj_t self_in) {
+
+        ulp_riscv_timer_resume();
+        return mp_const_none;
+    }
+    STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_timer_resume_obj, esp32_ulp_riscv_timer_resume);
+
+    // #include "ulp_genhdr/ulp_my_main.h"
+    // STATIC mp_obj_t esp32_ulp_riscv_get_var(mp_obj_t self_in) {
+    //     return MP_OBJ_NEW_SMALL_INT(ulp_spi_result);
+    // }
+    // STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_get_var_obj, esp32_ulp_riscv_get_var);
 #endif
 
 
@@ -152,7 +181,11 @@ STATIC const mp_rom_map_elem_t esp32_ulp_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_riscv_load_default_binary), MP_ROM_PTR(&esp32_ulp_riscv_load_default_binary_obj) },
     { MP_ROM_QSTR(MP_QSTR_riscv_load_binary), MP_ROM_PTR(&esp32_ulp_riscv_load_binary_obj) },
     { MP_ROM_QSTR(MP_QSTR_riscv_run), MP_ROM_PTR(&esp32_ulp_riscv_run_obj) },
-    { MP_ROM_QSTR(MP_QSTR_riscv_get_var), MP_ROM_PTR(&esp32_ulp_riscv_get_var_obj) },
+    // { MP_ROM_QSTR(MP_QSTR_riscv_reset), MP_ROM_PTR(&esp32_ulp_riscv_reset_obj) },
+    { MP_ROM_QSTR(MP_QSTR_riscv_halt), MP_ROM_PTR(&esp32_ulp_riscv_halt_obj) },
+    { MP_ROM_QSTR(MP_QSTR_riscv_timer_stop), MP_ROM_PTR(&esp32_ulp_riscv_timer_stop_obj) },
+    { MP_ROM_QSTR(MP_QSTR_riscv_timer_resume), MP_ROM_PTR(&esp32_ulp_riscv_timer_resume_obj) },
+    // { MP_ROM_QSTR(MP_QSTR_riscv_get_var), MP_ROM_PTR(&esp32_ulp_riscv_get_var_obj) },
     #else
     { MP_ROM_QSTR(MP_QSTR_load_binary), MP_ROM_PTR(&esp32_ulp_load_binary_obj) },
     { MP_ROM_QSTR(MP_QSTR_run), MP_ROM_PTR(&esp32_ulp_run_obj) },
