@@ -12,12 +12,16 @@ for the stm module.
 
 from __future__ import print_function
 
-import argparse
 import re
 import os
+import json
+import logging
+import argparse
 
 # Python 2/3 compatibility
 import platform
+
+logger = logging.getLogger(__name__)
 
 def parse_file(filename):
 
@@ -37,55 +41,13 @@ def parse_file(filename):
         # Check if the key starts with "ulp_"
         if variable.startswith("ulp_"):
             # Remove "ulp_" from the beginning of the key
-            variable = variable[4:].upper()
+            variable = variable[4:]
 
             shared_variables[variable.strip()] = address.strip()
 
     return shared_variables
 
-def main():
-    cmd_parser = argparse.ArgumentParser(description="Extract ULP constants from a C header file.")
-    cmd_parser.add_argument("file", nargs=1, help="input file")
-
-    cmd_parser.add_argument(
-        "-d",
-        "--output-dir",
-        dest="output_dir",
-        default="build",
-        help="Specify the output dir for all files"
-    )
-    cmd_parser.add_argument(
-        "-q",
-        "--qstr",
-        dest="qstr_filename",
-        default="esp32_ulpconst_qstr.h",
-        help="Specified the name of the generated qstr header file",
-    )
-    cmd_parser.add_argument(
-        "-m",
-        "--mpz",
-        dest="mpz_filename",
-        default="esp32_ulpconst_mpz.h",
-        help="the destination file of the generated mpz header",
-    )
-    cmd_parser.add_argument(
-        "--header",
-        dest="header_filename",
-        default="ulp_main.h",
-        help="the destination file of the generated header",
-    )
-    args = cmd_parser.parse_args()
-
-    shared_variables = parse_file(args.file[0])
-
-    print("// Automatically generated from %s by make-esp32ulpconst.py" % args.file[0])
-    print("")
-
-    if not os.path.isdir(args.output_dir):
-        try:
-            os.makedirs(args.output_dir)
-        except FileExistsError:
-            pass
+def create_for_embedded_ulp(args,shared_variables):
     with open(os.path.join(args.output_dir,args.qstr_filename), "wt") as h_file:
         for key, value in shared_variables.items():
             assert 0 <= int(value, 16) <= 0xFFFFFFFF
@@ -101,17 +63,96 @@ def main():
         for key, value in shared_variables.items():
             print(
                 "{MP_ROM_QSTR(MP_QSTR_%s), MP_ROM_PTR( & mpz_%08x)},"
-                % (key, int(value, 16)),
+                % (key.upper(), int(value, 16)),
                 file=mpz_file,
             )
 
-    with open(os.path.splitext(args.file[0])[0]+'.h','rb') as _inf:
+    with open(os.path.splitext(args.file)[0]+'.h','rb') as _inf:
         with open(os.path.join(args.output_dir,args.header_filename), "wb") as header_file:
             header_file.write(_inf.read())
     #{MP_ROM_QSTR(MP_QSTR_VOLTAGE), MP_ROM_PTR( & mpz_50000130)},
 
-    print('aAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
-    return shared_variables
+def create_for_dynamic_ulp(args,shared_variables):
+    print(json.dumps(shared_variables))
+
+def main():
+    parser = argparse.ArgumentParser(description="Extract ULP constants from a C header file.")
+    parser.add_argument(
+        "-l",
+        "--log-level",
+        dest="log_level",
+        default="info",
+        help="Specify the log level"
+    )
+    subparsers = parser.add_subparsers()
+    embedded_parser = subparsers.add_parser('create-for-embedded', help='create headers for embedded ulp')
+    embedded_parser.set_defaults(command=create_for_embedded_ulp)
+    dynamic_parser = subparsers.add_parser('create-for-dynamic', help='create python helpers for dynamic ulp')
+    dynamic_parser.set_defaults(command=create_for_dynamic_ulp)
+
+    embedded_parser.add_argument("file", help="input file")
+
+    embedded_parser.add_argument(
+        "-d",
+        "--output-dir",
+        dest="output_dir",
+        default="build",
+        help="Specify the output dir for all files"
+    )
+    embedded_parser.add_argument(
+        "-q",
+        "--qstr",
+        dest="qstr_filename",
+        default="esp32_ulpconst_qstr.h",
+        help="Specified the name of the generated qstr header file",
+    )
+    embedded_parser.add_argument(
+        "-m",
+        "--mpz",
+        dest="mpz_filename",
+        default="esp32_ulpconst_mpz.h",
+        help="the destination file of the generated mpz header",
+    )
+    embedded_parser.add_argument(
+        "--header",
+        dest="header_filename",
+        default="ulp_main.h",
+        help="the destination file of the generated header",
+    )
+
+    dynamic_parser.add_argument("file", help="input file")
+
+    dynamic_parser.add_argument(
+        "-d",
+        "--output-dir",
+        dest="output_dir",
+        default="build",
+        help="Specify the output dir for all files"
+    )
+    args = parser.parse_args()
+    kwargs = vars(args)
+    if not hasattr(args,'command'):
+        parser.print_help()
+    else:
+
+        logging.basicConfig(
+            format="%(levelname)s [%(asctime)s] %(name)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+            level=args.log_level.upper()
+        )
+
+        shared_variables = parse_file(args.file)
+
+        logger.info("// Automatically generating from %s by make-esp32ulpconst.py", args.file)
+
+        if not os.path.isdir(args.output_dir):
+            try:
+                os.makedirs(args.output_dir)
+            except FileExistsError:
+                pass
+
+        args.command(args,shared_variables)
+        return shared_variables
 
 if __name__ == "__main__":
     main()
