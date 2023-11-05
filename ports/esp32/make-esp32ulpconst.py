@@ -23,6 +23,7 @@ import platform
 
 logger = logging.getLogger(__name__)
 
+
 def parse_file(filename):
 
     regex_pattern = '(\w+)\s\=\s*(?:"([^"]*)"|(\S+))'
@@ -73,7 +74,8 @@ def create_for_embedded_ulp(args,shared_variables):
     #{MP_ROM_QSTR(MP_QSTR_VOLTAGE), MP_ROM_PTR( & mpz_50000130)},
 
 def create_for_dynamic_ulp(args,shared_variables):
-    print(json.dumps(shared_variables))
+    data = {k:int(v,16) for k,v in shared_variables.items()}
+    print(json.dumps(data))
 
 def main():
     parser = argparse.ArgumentParser(description="Extract ULP constants from a C header file.")
