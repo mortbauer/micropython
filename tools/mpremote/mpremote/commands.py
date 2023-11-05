@@ -56,7 +56,8 @@ def do_connect(state, args=None):
             # Connect to the given device.
             if dev.startswith("port:"):
                 dev = dev[len("port:") :]
-            state.transport = SerialTransport(dev, baudrate=115200)
+            state.transport = SerialTransport(dev, baudrate=460800)
+            # state.transport = SerialTransport(dev, baudrate=115200)
             return
     except TransportError as er:
         msg = er.args[0]
