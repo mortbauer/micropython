@@ -360,6 +360,16 @@ STATIC mp_obj_t machine_pin_rtc_hold(mp_obj_t self_in,mp_obj_t onoff_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_hold_obj, machine_pin_rtc_hold);
 
+// pin.rtc_deinit(state)
+STATIC mp_obj_t machine_pin_rtc_deinit(mp_obj_t self_in) {
+    machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
+        rtc_gpio_deinit(PIN_OBJ_INDEX(self));
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_pin_rtc_deinit_obj, machine_pin_rtc_deinit);
+
 // pin.irq(handler=None, trigger=IRQ_FALLING|IRQ_RISING)
 STATIC mp_obj_t machine_pin_irq(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_handler, ARG_trigger, ARG_wake };
@@ -445,6 +455,7 @@ STATIC const mp_rom_map_elem_t machine_pin_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_rtc_pullup), MP_ROM_PTR(&machine_pin_rtc_pullup_obj) },
     { MP_ROM_QSTR(MP_QSTR_rtc_pulldown), MP_ROM_PTR(&machine_pin_rtc_pulldown_obj) },
     { MP_ROM_QSTR(MP_QSTR_rtc_hold), MP_ROM_PTR(&machine_pin_rtc_hold_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rtc_deinit), MP_ROM_PTR(&machine_pin_rtc_deinit_obj) },
     { MP_ROM_QSTR(MP_QSTR_irq), MP_ROM_PTR(&machine_pin_irq_obj) },
 
     // class attributes
