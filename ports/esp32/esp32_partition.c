@@ -268,9 +268,9 @@ STATIC MP_DEFINE_CONST_CLASSMETHOD_OBJ(esp32_partition_mark_app_valid_cancel_rol
 STATIC mp_obj_t esp32_partition_mmap(mp_obj_t self_in) {
     esp32_partition_obj_t *self = MP_OBJ_TO_PTR(self_in);
     const void *ptr;
-    spi_flash_mmap_handle_t handle;
-    // TODO need to spi_flash_unmmap(handle) on soft reset
-    check_esp_err(esp_partition_mmap(self->part, 0, self->part->size, SPI_FLASH_MMAP_DATA, &ptr, &handle));
+    esp_partition_mmap_handle_t handle;
+    // TODO need to esp_partition_munmap(handle) on soft reset
+    check_esp_err(esp_partition_mmap(self->part, 0, self->part->size, ESP_PARTITION_MMAP_DATA, &ptr, &handle));
     return mp_obj_new_memoryview('B', self->part->size, (void *)ptr);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_partition_mmap_obj, esp32_partition_mmap);

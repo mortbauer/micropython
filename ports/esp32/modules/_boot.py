@@ -4,7 +4,9 @@ from esp32 import Partition
 from flashbdev import bdev
 
 if mapfs := Partition.find(Partition.TYPE_DATA, label="mapfs"):
-    uos.mount(uos.VfsMap(mapfs[0].mmap(), mapfs[0]), "/mapfs")
+    os.mount(os.VfsMap(mapfs[0].mmap(), mapfs[0]), "/mapfs")
+    import sys
+    sys.path.insert(0, "/mapfs")
 del mapfs
 
 try:

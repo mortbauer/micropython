@@ -299,12 +299,13 @@ STATIC const mp_vfs_proto_t vfs_map_proto = {
     .import_stat = mp_vfs_map_import_stat,
 };
 
-const mp_obj_type_t mp_type_vfs_map = {
-    { &mp_type_type },
-    .name = MP_QSTR_VfsMap,
-    .make_new = vfs_map_make_new,
-    .protocol = &vfs_map_proto,
-    .locals_dict = (mp_obj_dict_t *)&vfs_map_locals_dict,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    mp_type_vfs_map,
+    MP_QSTR_VfsMap,
+    MP_TYPE_FLAG_NONE,
+    make_new, vfs_map_make_new,
+    protocol, &vfs_map_proto,
+    locals_dict, &vfs_map_locals_dict
+    );
 
 #endif // MICROPY_VFS_MAP

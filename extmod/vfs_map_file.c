@@ -52,15 +52,12 @@ mp_obj_t mp_vfs_map_file_open(mp_obj_t self_in, mp_obj_t path_in, mp_obj_t mode_
             case 'a':
             case '+':
                 mp_raise_OSError(MP_EROFS);
-                #if MICROPY_PY_IO_FILEIO
-            // If we don't have io.FileIO, then files are in text mode implicitly
             case 'b':
                 type = &mp_type_vfs_map_fileio;
                 break;
             case 't':
                 type = &mp_type_vfs_map_textio;
                 break;
-                #endif
         }
     }
 
@@ -141,21 +138,18 @@ STATIC const mp_rom_map_elem_t vfs_map_rawfile_locals_dict_table[] = {
 };
 STATIC MP_DEFINE_CONST_DICT(vfs_map_rawfile_locals_dict, vfs_map_rawfile_locals_dict_table);
 
-#if MICROPY_PY_IO_FILEIO
 STATIC const mp_stream_p_t vfs_map_fileio_stream_p = {
     .read = vfs_map_file_read,
     .ioctl = vfs_map_file_ioctl,
 };
 
-const mp_obj_type_t mp_type_vfs_map_fileio = {
-    { &mp_type_type },
-    .name = MP_QSTR_FileIO,
-    .getiter = mp_identity_getiter,
-    .iternext = mp_stream_unbuffered_iter,
-    .protocol = &vfs_map_fileio_stream_p,
-    .locals_dict = (mp_obj_dict_t *)&vfs_map_rawfile_locals_dict,
-};
-#endif
+MP_DEFINE_CONST_OBJ_TYPE(
+    mp_type_vfs_map_fileio,
+    MP_QSTR_FileIO,
+    MP_TYPE_FLAG_ITER_IS_STREAM,
+    protocol, &vfs_map_fileio_stream_p,
+    locals_dict, &vfs_map_rawfile_locals_dict
+    );
 
 STATIC const mp_stream_p_t vfs_map_textio_stream_p = {
     .read = vfs_map_file_read,
@@ -163,14 +157,13 @@ STATIC const mp_stream_p_t vfs_map_textio_stream_p = {
     .is_text = true,
 };
 
-const mp_obj_type_t mp_type_vfs_map_textio = {
-    { &mp_type_type },
-    .name = MP_QSTR_TextIOWrapper,
-    .getiter = mp_identity_getiter,
-    .iternext = mp_stream_unbuffered_iter,
-    .protocol = &vfs_map_textio_stream_p,
-    .locals_dict = (mp_obj_dict_t *)&vfs_map_rawfile_locals_dict,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    mp_type_vfs_map_textio,
+    MP_QSTR_TextIOWrapper,
+    MP_TYPE_FLAG_ITER_IS_STREAM,
+    protocol, &vfs_map_textio_stream_p,
+    locals_dict, &vfs_map_rawfile_locals_dict
+    );
 
 mp_uint_t mp_vfs_map_readbyte(void *data) {
     mp_obj_vfs_map_file_t *self = data;

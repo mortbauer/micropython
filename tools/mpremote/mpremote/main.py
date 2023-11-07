@@ -40,7 +40,6 @@ from .commands import (
 )
 from .mip import do_mip
 from .repl import do_repl
-from .mapfs import make_mapfs
 
 _PROG = "mpremote"
 
@@ -222,7 +221,7 @@ def argparse_mip():
 
 
 def argparse_deploy_mapfs():
-    cmd_parser = argparse.ArgumentParser(description="deploy a directory to /mapfs on the device")),
+    cmd_parser = argparse.ArgumentParser(description="deploy a directory to /mapfs on the device")
     cmd_parser.add_argument("path", nargs=1, help="path to directory to deploy")
     return cmd_parser
 
