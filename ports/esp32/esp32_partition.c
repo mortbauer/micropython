@@ -40,6 +40,7 @@
 // supports smaller block sizes, in which case a cache is used and writes may
 // be less efficient.
 #define NATIVE_BLOCK_SIZE_BYTES (4096)
+#define HASH_LEN_SHA256 32 /* SHA-256 digest length */
 
 enum {
     ESP32_PARTITION_BOOT,
@@ -250,6 +251,15 @@ STATIC mp_obj_t esp32_partition_set_boot(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_partition_set_boot_obj, esp32_partition_set_boot);
 
+STATIC mp_obj_t esp32_partition_get_sha256(mp_obj_t self_in) {
+    esp32_partition_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    // uint8_t part_sha_256[HASH_LEN_SHA256] = {0};
+    uint8_t *part_sha_256 = malloc(HASH_LEN_SHA256*sizeof(uint8_t));
+    check_esp_err(esp_partition_get_sha256(self->part,part_sha_256));
+    return mp_obj_new_bytes(part_sha_256,HASH_LEN_SHA256);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_partition_get_sha256_obj, esp32_partition_get_sha256);
+
 STATIC mp_obj_t esp32_partition_get_next_update(mp_obj_t self_in) {
     esp32_partition_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return MP_OBJ_FROM_PTR(esp32_partition_new(esp_ota_get_next_update_partition(self->part), NATIVE_BLOCK_SIZE_BYTES));
@@ -274,6 +284,7 @@ STATIC const mp_rom_map_elem_t esp32_partition_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_ioctl), MP_ROM_PTR(&esp32_partition_ioctl_obj) },
 
     { MP_ROM_QSTR(MP_QSTR_set_boot), MP_ROM_PTR(&esp32_partition_set_boot_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_sha256), MP_ROM_PTR(&esp32_partition_get_sha256_obj) },
     { MP_ROM_QSTR(MP_QSTR_mark_app_valid_cancel_rollback), MP_ROM_PTR(&esp32_partition_mark_app_valid_cancel_rollback_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_next_update), MP_ROM_PTR(&esp32_partition_get_next_update_obj) },
 
@@ -281,6 +292,7 @@ STATIC const mp_rom_map_elem_t esp32_partition_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_RUNNING), MP_ROM_INT(ESP32_PARTITION_RUNNING) },
     { MP_ROM_QSTR(MP_QSTR_TYPE_APP), MP_ROM_INT(ESP_PARTITION_TYPE_APP) },
     { MP_ROM_QSTR(MP_QSTR_TYPE_DATA), MP_ROM_INT(ESP_PARTITION_TYPE_DATA) },
+    { MP_ROM_QSTR(MP_QSTR_SUBTYPE_DATA_SPIFFS), MP_ROM_INT(ESP_PARTITION_SUBTYPE_DATA_SPIFFS) },
 };
 STATIC MP_DEFINE_CONST_DICT(esp32_partition_locals_dict, esp32_partition_locals_dict_table);
 
