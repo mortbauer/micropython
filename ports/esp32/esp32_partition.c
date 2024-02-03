@@ -40,6 +40,7 @@
 // supports smaller block sizes, in which case a cache is used and writes may
 // be less efficient.
 #define NATIVE_BLOCK_SIZE_BYTES (4096)
+#define HASH_LEN_SHA256 32 /* SHA-256 digest length */
 
 enum {
     ESP32_PARTITION_BOOT,
@@ -53,7 +54,7 @@ typedef struct _esp32_partition_obj_t {
     uint16_t block_size;
 } esp32_partition_obj_t;
 
-static esp32_partition_obj_t *esp32_partition_new(const esp_partition_t *part, uint16_t block_size) {
+STATIC esp32_partition_obj_t *esp32_partition_new(const esp_partition_t *part, uint16_t block_size) {
     if (part == NULL) {
         mp_raise_OSError(MP_ENOENT);
     }
@@ -68,7 +69,7 @@ static esp32_partition_obj_t *esp32_partition_new(const esp_partition_t *part, u
     return self;
 }
 
-static void esp32_partition_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
+STATIC void esp32_partition_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     esp32_partition_obj_t *self = MP_OBJ_TO_PTR(self_in);
     mp_printf(print, "<Partition type=%u, subtype=%u, address=%u, size=%u, label=%s, encrypted=%u>",
         self->part->type, self->part->subtype,
@@ -77,7 +78,7 @@ static void esp32_partition_print(const mp_print_t *print, mp_obj_t self_in, mp_
         );
 }
 
-static mp_obj_t esp32_partition_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
+STATIC mp_obj_t esp32_partition_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
     // Check args
     mp_arg_check_num(n_args, n_kw, 1, 2, false);
 
@@ -114,7 +115,7 @@ static mp_obj_t esp32_partition_make_new(const mp_obj_type_t *type, size_t n_arg
     return MP_OBJ_FROM_PTR(esp32_partition_new(part, block_size));
 }
 
-static mp_obj_t esp32_partition_find(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+STATIC mp_obj_t esp32_partition_find(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     // Parse args
     enum { ARG_type, ARG_subtype, ARG_label, ARG_block_size };
     static const mp_arg_t allowed_args[] = {
@@ -146,10 +147,10 @@ static mp_obj_t esp32_partition_find(size_t n_args, const mp_obj_t *pos_args, mp
 
     return list;
 }
-static MP_DEFINE_CONST_FUN_OBJ_KW(esp32_partition_find_fun_obj, 0, esp32_partition_find);
-static MP_DEFINE_CONST_STATICMETHOD_OBJ(esp32_partition_find_obj, MP_ROM_PTR(&esp32_partition_find_fun_obj));
+STATIC MP_DEFINE_CONST_FUN_OBJ_KW(esp32_partition_find_fun_obj, 0, esp32_partition_find);
+STATIC MP_DEFINE_CONST_STATICMETHOD_OBJ(esp32_partition_find_obj, MP_ROM_PTR(&esp32_partition_find_fun_obj));
 
-static mp_obj_t esp32_partition_info(mp_obj_t self_in) {
+STATIC mp_obj_t esp32_partition_info(mp_obj_t self_in) {
     esp32_partition_obj_t *self = MP_OBJ_TO_PTR(self_in);
     mp_obj_t tuple[] = {
         MP_OBJ_NEW_SMALL_INT(self->part->type),
@@ -161,9 +162,9 @@ static mp_obj_t esp32_partition_info(mp_obj_t self_in) {
     };
     return mp_obj_new_tuple(6, tuple);
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(esp32_partition_info_obj, esp32_partition_info);
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_partition_info_obj, esp32_partition_info);
 
-static mp_obj_t esp32_partition_readblocks(size_t n_args, const mp_obj_t *args) {
+STATIC mp_obj_t esp32_partition_readblocks(size_t n_args, const mp_obj_t *args) {
     esp32_partition_obj_t *self = MP_OBJ_TO_PTR(args[0]);
     uint32_t offset = mp_obj_get_int(args[1]) * self->block_size;
     mp_buffer_info_t bufinfo;
@@ -174,9 +175,9 @@ static mp_obj_t esp32_partition_readblocks(size_t n_args, const mp_obj_t *args) 
     check_esp_err(esp_partition_read(self->part, offset, bufinfo.buf, bufinfo.len));
     return mp_const_none;
 }
-static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(esp32_partition_readblocks_obj, 3, 4, esp32_partition_readblocks);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(esp32_partition_readblocks_obj, 3, 4, esp32_partition_readblocks);
 
-static mp_obj_t esp32_partition_writeblocks(size_t n_args, const mp_obj_t *args) {
+STATIC mp_obj_t esp32_partition_writeblocks(size_t n_args, const mp_obj_t *args) {
     esp32_partition_obj_t *self = MP_OBJ_TO_PTR(args[0]);
     uint32_t offset = mp_obj_get_int(args[1]) * self->block_size;
     mp_buffer_info_t bufinfo;
@@ -200,7 +201,7 @@ static mp_obj_t esp32_partition_writeblocks(size_t n_args, const mp_obj_t *args)
                     check_esp_err(esp_partition_write(self->part, addr, self->cache, o));
                 }
                 if (top_addr < addr + NATIVE_BLOCK_SIZE_BYTES) {
-                    check_esp_err(esp_partition_write(self->part, top_addr, self->cache + (top_addr - addr), addr + NATIVE_BLOCK_SIZE_BYTES - top_addr));
+                    check_esp_err(esp_partition_write(self->part, top_addr, self->cache, addr + NATIVE_BLOCK_SIZE_BYTES - top_addr));
                 }
                 o = 0;
                 addr += NATIVE_BLOCK_SIZE_BYTES;
@@ -213,9 +214,9 @@ static mp_obj_t esp32_partition_writeblocks(size_t n_args, const mp_obj_t *args)
     check_esp_err(esp_partition_write(self->part, offset, bufinfo.buf, bufinfo.len));
     return mp_const_none;
 }
-static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(esp32_partition_writeblocks_obj, 3, 4, esp32_partition_writeblocks);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(esp32_partition_writeblocks_obj, 3, 4, esp32_partition_writeblocks);
 
-static mp_obj_t esp32_partition_ioctl(mp_obj_t self_in, mp_obj_t cmd_in, mp_obj_t arg_in) {
+STATIC mp_obj_t esp32_partition_ioctl(mp_obj_t self_in, mp_obj_t cmd_in, mp_obj_t arg_in) {
     esp32_partition_obj_t *self = MP_OBJ_TO_PTR(self_in);
     mp_int_t cmd = mp_obj_get_int(cmd_in);
     switch (cmd) {
@@ -241,31 +242,40 @@ static mp_obj_t esp32_partition_ioctl(mp_obj_t self_in, mp_obj_t cmd_in, mp_obj_
             return mp_const_none;
     }
 }
-static MP_DEFINE_CONST_FUN_OBJ_3(esp32_partition_ioctl_obj, esp32_partition_ioctl);
+STATIC MP_DEFINE_CONST_FUN_OBJ_3(esp32_partition_ioctl_obj, esp32_partition_ioctl);
 
-static mp_obj_t esp32_partition_set_boot(mp_obj_t self_in) {
+STATIC mp_obj_t esp32_partition_set_boot(mp_obj_t self_in) {
     esp32_partition_obj_t *self = MP_OBJ_TO_PTR(self_in);
     check_esp_err(esp_ota_set_boot_partition(self->part));
     return mp_const_none;
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(esp32_partition_set_boot_obj, esp32_partition_set_boot);
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_partition_set_boot_obj, esp32_partition_set_boot);
 
-static mp_obj_t esp32_partition_get_next_update(mp_obj_t self_in) {
+STATIC mp_obj_t esp32_partition_get_sha256(mp_obj_t self_in) {
+    esp32_partition_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    // uint8_t part_sha_256[HASH_LEN_SHA256] = {0};
+    uint8_t *part_sha_256 = malloc(HASH_LEN_SHA256*sizeof(uint8_t));
+    check_esp_err(esp_partition_get_sha256(self->part,part_sha_256));
+    return mp_obj_new_bytes(part_sha_256,HASH_LEN_SHA256);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_partition_get_sha256_obj, esp32_partition_get_sha256);
+
+STATIC mp_obj_t esp32_partition_get_next_update(mp_obj_t self_in) {
     esp32_partition_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return MP_OBJ_FROM_PTR(esp32_partition_new(esp_ota_get_next_update_partition(self->part), NATIVE_BLOCK_SIZE_BYTES));
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(esp32_partition_get_next_update_obj, esp32_partition_get_next_update);
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_partition_get_next_update_obj, esp32_partition_get_next_update);
 
-static mp_obj_t esp32_partition_mark_app_valid_cancel_rollback(mp_obj_t cls_in) {
+STATIC mp_obj_t esp32_partition_mark_app_valid_cancel_rollback(mp_obj_t cls_in) {
     check_esp_err(esp_ota_mark_app_valid_cancel_rollback());
     return mp_const_none;
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(esp32_partition_mark_app_valid_cancel_rollback_fun_obj,
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_partition_mark_app_valid_cancel_rollback_fun_obj,
     esp32_partition_mark_app_valid_cancel_rollback);
-static MP_DEFINE_CONST_CLASSMETHOD_OBJ(esp32_partition_mark_app_valid_cancel_rollback_obj,
+STATIC MP_DEFINE_CONST_CLASSMETHOD_OBJ(esp32_partition_mark_app_valid_cancel_rollback_obj,
     MP_ROM_PTR(&esp32_partition_mark_app_valid_cancel_rollback_fun_obj));
 
-static const mp_rom_map_elem_t esp32_partition_locals_dict_table[] = {
+STATIC const mp_rom_map_elem_t esp32_partition_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_find), MP_ROM_PTR(&esp32_partition_find_obj) },
 
     { MP_ROM_QSTR(MP_QSTR_info), MP_ROM_PTR(&esp32_partition_info_obj) },
@@ -274,6 +284,7 @@ static const mp_rom_map_elem_t esp32_partition_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_ioctl), MP_ROM_PTR(&esp32_partition_ioctl_obj) },
 
     { MP_ROM_QSTR(MP_QSTR_set_boot), MP_ROM_PTR(&esp32_partition_set_boot_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_sha256), MP_ROM_PTR(&esp32_partition_get_sha256_obj) },
     { MP_ROM_QSTR(MP_QSTR_mark_app_valid_cancel_rollback), MP_ROM_PTR(&esp32_partition_mark_app_valid_cancel_rollback_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_next_update), MP_ROM_PTR(&esp32_partition_get_next_update_obj) },
 
@@ -281,8 +292,9 @@ static const mp_rom_map_elem_t esp32_partition_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_RUNNING), MP_ROM_INT(ESP32_PARTITION_RUNNING) },
     { MP_ROM_QSTR(MP_QSTR_TYPE_APP), MP_ROM_INT(ESP_PARTITION_TYPE_APP) },
     { MP_ROM_QSTR(MP_QSTR_TYPE_DATA), MP_ROM_INT(ESP_PARTITION_TYPE_DATA) },
+    { MP_ROM_QSTR(MP_QSTR_SUBTYPE_DATA_SPIFFS), MP_ROM_INT(ESP_PARTITION_SUBTYPE_DATA_SPIFFS) },
 };
-static MP_DEFINE_CONST_DICT(esp32_partition_locals_dict, esp32_partition_locals_dict_table);
+STATIC MP_DEFINE_CONST_DICT(esp32_partition_locals_dict, esp32_partition_locals_dict_table);
 
 MP_DEFINE_CONST_OBJ_TYPE(
     esp32_partition_type,
