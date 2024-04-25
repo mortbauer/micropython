@@ -72,6 +72,9 @@ def create_for_embedded_ulp(args,shared_variables):
         with open(os.path.join(args.output_dir,args.header_filename), "wb") as header_file:
             header_file.write(_inf.read())
     #{MP_ROM_QSTR(MP_QSTR_VOLTAGE), MP_ROM_PTR( & mpz_50000130)},
+    data = {k:int(v,16) for k,v in shared_variables.items()}
+    with open(os.path.join(args.output_dir,args.header_filename+'.json'), "w") as map_file:
+        map_file.write(json.dumps(data))
 
 def create_for_dynamic_ulp(args,shared_variables):
     data = {k:int(v,16) for k,v in shared_variables.items()}
