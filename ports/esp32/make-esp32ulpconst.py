@@ -53,7 +53,7 @@ def create_for_embedded_ulp(args,shared_variables):
         for key, value in shared_variables.items():
             assert 0 <= int(value, 16) <= 0xFFFFFFFF
             print(
-                "STATIC const mp_obj_int_t mpz_%08x = {{&mp_type_int}, "
+                "static const mp_obj_int_t mpz_%08x = {{&mp_type_int}, "
                 "{.neg=0, .fixed_dig=1, .alloc=2, .len=2, "
                 ".dig=(uint16_t*)(const uint16_t[]){%#x, %#x}}};"
                 % (int(value, 16), int(value, 16) & 0xFFFF, (int(value, 16) >> 16) & 0xFFFF),
