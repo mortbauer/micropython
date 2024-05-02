@@ -284,17 +284,17 @@ static mp_obj_t machine_pin_on(mp_obj_t self_in) {
 static MP_DEFINE_CONST_FUN_OBJ_1(machine_pin_on_obj, machine_pin_on);
 
 // pin.rtc_init()
-STATIC mp_obj_t machine_pin_rtc_init(mp_obj_t self_in) {
+static mp_obj_t machine_pin_rtc_init(mp_obj_t self_in) {
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
     if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
         rtc_gpio_init(PIN_OBJ_INDEX(self));
     }
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_pin_rtc_init_obj, machine_pin_rtc_init);
+static MP_DEFINE_CONST_FUN_OBJ_1(machine_pin_rtc_init_obj, machine_pin_rtc_init);
 
 // pin.rtc_set_direction(direction)
-STATIC mp_obj_t machine_pin_rtc_set_direction(mp_obj_t self_in,mp_obj_t pin_io_mode_in) {
+static mp_obj_t machine_pin_rtc_set_direction(mp_obj_t self_in,mp_obj_t pin_io_mode_in) {
     mp_int_t pin_io_mode = mp_obj_get_int(pin_io_mode_in);
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
     if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
@@ -302,10 +302,10 @@ STATIC mp_obj_t machine_pin_rtc_set_direction(mp_obj_t self_in,mp_obj_t pin_io_m
     }
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_set_direction_obj, machine_pin_rtc_set_direction);
+static MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_set_direction_obj, machine_pin_rtc_set_direction);
 
 // pin.rtc_set_level(level)
-STATIC mp_obj_t machine_pin_rtc_set_level(mp_obj_t self_in,mp_obj_t level_in) {
+static mp_obj_t machine_pin_rtc_set_level(mp_obj_t self_in,mp_obj_t level_in) {
     mp_int_t level = mp_obj_get_int(level_in);
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
     if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
@@ -313,10 +313,10 @@ STATIC mp_obj_t machine_pin_rtc_set_level(mp_obj_t self_in,mp_obj_t level_in) {
     }
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_set_level_obj, machine_pin_rtc_set_level);
+static MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_set_level_obj, machine_pin_rtc_set_level);
 
 // pin.rtc_pullup(state)
-STATIC mp_obj_t machine_pin_rtc_pullup(mp_obj_t self_in,mp_obj_t onoff_in) {
+static mp_obj_t machine_pin_rtc_pullup(mp_obj_t self_in,mp_obj_t onoff_in) {
     mp_int_t onoff = mp_obj_get_int(onoff_in);
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
     if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
@@ -328,10 +328,10 @@ STATIC mp_obj_t machine_pin_rtc_pullup(mp_obj_t self_in,mp_obj_t onoff_in) {
     }
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_pullup_obj, machine_pin_rtc_pullup);
+static MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_pullup_obj, machine_pin_rtc_pullup);
 
 // pin.rtc_pulldown(state)
-STATIC mp_obj_t machine_pin_rtc_pulldown(mp_obj_t self_in,mp_obj_t onoff_in) {
+static mp_obj_t machine_pin_rtc_pulldown(mp_obj_t self_in,mp_obj_t onoff_in) {
     mp_int_t onoff = mp_obj_get_int(onoff_in);
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
     if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
@@ -343,10 +343,10 @@ STATIC mp_obj_t machine_pin_rtc_pulldown(mp_obj_t self_in,mp_obj_t onoff_in) {
     }
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_pulldown_obj, machine_pin_rtc_pulldown);
+static MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_pulldown_obj, machine_pin_rtc_pulldown);
 
 // pin.rtc_hold(state)
-STATIC mp_obj_t machine_pin_rtc_hold(mp_obj_t self_in,mp_obj_t onoff_in) {
+static mp_obj_t machine_pin_rtc_hold(mp_obj_t self_in,mp_obj_t onoff_in) {
     mp_int_t onoff = mp_obj_get_int(onoff_in);
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
     if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
@@ -358,17 +358,17 @@ STATIC mp_obj_t machine_pin_rtc_hold(mp_obj_t self_in,mp_obj_t onoff_in) {
     }
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_hold_obj, machine_pin_rtc_hold);
+static MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_hold_obj, machine_pin_rtc_hold);
 
 // pin.rtc_deinit(state)
-STATIC mp_obj_t machine_pin_rtc_deinit(mp_obj_t self_in) {
+static mp_obj_t machine_pin_rtc_deinit(mp_obj_t self_in) {
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
     if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
         rtc_gpio_deinit(PIN_OBJ_INDEX(self));
     }
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_pin_rtc_deinit_obj, machine_pin_rtc_deinit);
+static MP_DEFINE_CONST_FUN_OBJ_1(machine_pin_rtc_deinit_obj, machine_pin_rtc_deinit);
 
 // pin.irq(handler=None, trigger=IRQ_FALLING|IRQ_RISING)
 static mp_obj_t machine_pin_irq(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
