@@ -171,6 +171,77 @@ static MP_DEFINE_CONST_FUN_OBJ_3(esp32_ulp_set_wakeup_period_obj, esp32_ulp_set_
 
 #if ((CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3) && CONFIG_ULP_COPROC_TYPE_RISCV)
     #include "ulp_genhdr/esp32_ulpconst_qstr.h"
+
+    static void ulp_isr_handler_func(void *arg) {
+        mp_obj_t handler = MP_STATE_PORT(ulp_isr_handler);
+        mp_sched_schedule(handler, mp_const_none);
+    }
+
+    static mp_obj_t esp32_ulp_riscv_isr_register(size_t n_pos_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+        enum {
+            ARG_handler,
+            ARG_arg,
+            ARG_mask,
+        };
+        //{ MP_QSTR_d0,              MP_ARG_KW_ONLY  | MP_ARG_OBJ,   {.u_obj = MP_OBJ_NULL} },
+        static const mp_arg_t allowed_args[] = {
+            { MP_QSTR_handler,     MP_ARG_OBJ,   {.u_obj = mp_const_none} },
+            { MP_QSTR_arg,          MP_ARG_KW_ONLY  | MP_ARG_OBJ,   {.u_obj = mp_const_none} },
+            { MP_QSTR_mask,         MP_ARG_KW_ONLY  | MP_ARG_INT,   {.u_int = 0} },
+        };
+        mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
+        mp_arg_parse_all(n_pos_args - 1, pos_args +1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
+        mp_obj_t handler = args[ARG_handler].u_obj;
+        mp_obj_t arg = args[ARG_arg].u_obj;
+        mp_obj_t mask = args[ARG_mask].u_int;
+        if (handler != mp_const_none){
+            MP_STATE_PORT(ulp_isr_handler) = handler;
+            esp_err_t err = ulp_riscv_isr_register(ulp_isr_handler_func,arg,mask);
+            if (err != ESP_OK){
+                if (err == ESP_ERR_INVALID_ARG){
+                    mp_raise_ValueError(MP_ERROR_TEXT("Invalid arguments"));
+                } else if (err == ESP_ERR_INVALID_STATE){
+                    mp_raise_ValueError(MP_ERROR_TEXT("Invalid state"));
+                }
+            }
+        } else {
+            mp_raise_ValueError(MP_ERROR_TEXT("Handler can not be None"));
+        }
+        return mp_const_none;
+    }
+    static mp_obj_t esp32_ulp_riscv_isr_deregister(size_t n_pos_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+        enum {
+            ARG_handler,
+            ARG_arg,
+            ARG_mask,
+        };
+        //{ MP_QSTR_d0,              MP_ARG_KW_ONLY  | MP_ARG_OBJ,   {.u_obj = MP_OBJ_NULL} },
+        static const mp_arg_t allowed_args[] = {
+            { MP_QSTR_handler,      MP_ARG_OBJ,   {.u_obj = mp_const_none} },
+            { MP_QSTR_arg,          MP_ARG_KW_ONLY  | MP_ARG_OBJ,   {.u_obj = mp_const_none} },
+            { MP_QSTR_mask,         MP_ARG_KW_ONLY  | MP_ARG_INT,   {.u_int = 0} },
+        };
+        mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
+        mp_arg_parse_all(n_pos_args -1 , pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
+        mp_obj_t handler = args[ARG_handler].u_obj;
+        mp_obj_t arg = args[ARG_arg].u_obj;
+        mp_obj_t mask = args[ARG_mask].u_int;
+        if (handler != mp_const_none){
+            esp_err_t err = ulp_riscv_isr_deregister(ulp_isr_handler_func,arg,mask);
+            if (err != ESP_OK){
+                if (err == ESP_ERR_INVALID_ARG){
+                    mp_raise_ValueError(MP_ERROR_TEXT("Invalid arguments"));
+                } else if (err == ESP_ERR_INVALID_STATE){
+                    mp_raise_ValueError(MP_ERROR_TEXT("Invalid state"));
+                }
+            }
+        } else {
+            mp_raise_ValueError(MP_ERROR_TEXT("Handler can not be None"));
+        }
+        return mp_const_none;
+    }
+    static MP_DEFINE_CONST_FUN_OBJ_KW(esp32_ulp_riscv_isr_register_obj, 1, esp32_ulp_riscv_isr_register);
+    static MP_DEFINE_CONST_FUN_OBJ_KW(esp32_ulp_riscv_isr_deregister_obj, 1, esp32_ulp_riscv_isr_deregister);
 #endif
 
 static const mp_rom_map_elem_t esp32_ulp_locals_dict_table[] = {
@@ -180,7 +251,11 @@ static const mp_rom_map_elem_t esp32_ulp_locals_dict_table[] = {
     #include "ulp_genhdr/esp32_ulpconst_mpz.h"
     { MP_ROM_QSTR(MP_QSTR_riscv_load_default_binary), MP_ROM_PTR(&esp32_ulp_riscv_load_default_binary_obj) },
     { MP_ROM_QSTR(MP_QSTR_riscv_load_binary), MP_ROM_PTR(&esp32_ulp_riscv_load_binary_obj) },
+    { MP_ROM_QSTR(MP_QSTR_riscv_isr_register), MP_ROM_PTR(&esp32_ulp_riscv_isr_register_obj) },
+    { MP_ROM_QSTR(MP_QSTR_riscv_isr_deregister), MP_ROM_PTR(&esp32_ulp_riscv_isr_deregister_obj) },
     { MP_ROM_QSTR(MP_QSTR_riscv_run), MP_ROM_PTR(&esp32_ulp_riscv_run_obj) },
+    { MP_ROM_QSTR(MP_QSTR_RISCV_SW_INT), MP_ROM_INT(ULP_RISCV_SW_INT) },
+    { MP_ROM_QSTR(MP_QSTR_RISCV_TRAP_INT), MP_ROM_INT(ULP_RISCV_TRAP_INT) },
     // { MP_ROM_QSTR(MP_QSTR_riscv_reset), MP_ROM_PTR(&esp32_ulp_riscv_reset_obj) },
     { MP_ROM_QSTR(MP_QSTR_riscv_halt), MP_ROM_PTR(&esp32_ulp_riscv_halt_obj) },
     { MP_ROM_QSTR(MP_QSTR_riscv_timer_stop), MP_ROM_PTR(&esp32_ulp_riscv_timer_stop_obj) },
@@ -202,4 +277,5 @@ MP_DEFINE_CONST_OBJ_TYPE(
     locals_dict, &esp32_ulp_locals_dict
     );
 
+MP_REGISTER_ROOT_POINTER(mp_obj_t ulp_isr_handler);
 #endif // CONFIG_IDF_TARGET_ESP32 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
