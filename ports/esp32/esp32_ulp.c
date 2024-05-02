@@ -72,7 +72,7 @@ static mp_obj_t esp32_ulp_set_wakeup_period(mp_obj_t self_in, mp_obj_t period_in
 static MP_DEFINE_CONST_FUN_OBJ_3(esp32_ulp_set_wakeup_period_obj, esp32_ulp_set_wakeup_period);
 
 #if (CONFIG_IDF_TARGET_ESP32 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3) && CONFIG_ULP_COPROC_TYPE_FSM
-    STATIC mp_obj_t esp32_ulp_load_binary(mp_obj_t self_in, mp_obj_t load_addr_in, mp_obj_t program_binary_in) {
+    static mp_obj_t esp32_ulp_load_binary(mp_obj_t self_in, mp_obj_t load_addr_in, mp_obj_t program_binary_in) {
         mp_uint_t load_addr = mp_obj_get_int(load_addr_in);
 
         mp_buffer_info_t bufinfo;
@@ -84,9 +84,9 @@ static MP_DEFINE_CONST_FUN_OBJ_3(esp32_ulp_set_wakeup_period_obj, esp32_ulp_set_
         }
         return mp_const_none;
     }
-    STATIC MP_DEFINE_CONST_FUN_OBJ_3(esp32_ulp_load_binary_obj, esp32_ulp_load_binary);
+    static MP_DEFINE_CONST_FUN_OBJ_3(esp32_ulp_load_binary_obj, esp32_ulp_load_binary);
 
-    STATIC mp_obj_t esp32_ulp_run(mp_obj_t self_in, mp_obj_t entry_point_in) {
+    static mp_obj_t esp32_ulp_run(mp_obj_t self_in, mp_obj_t entry_point_in) {
         mp_uint_t entry_point = mp_obj_get_int(entry_point_in);
         int _errno = ulp_run(entry_point / sizeof(uint32_t));
         if (_errno != ESP_OK) {
@@ -94,13 +94,13 @@ static MP_DEFINE_CONST_FUN_OBJ_3(esp32_ulp_set_wakeup_period_obj, esp32_ulp_set_
         }
         return mp_const_none;
     }
-    STATIC MP_DEFINE_CONST_FUN_OBJ_2(esp32_ulp_run_obj, esp32_ulp_run);
+    static MP_DEFINE_CONST_FUN_OBJ_2(esp32_ulp_run_obj, esp32_ulp_run);
 #elif (CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3) && CONFIG_ULP_COPROC_TYPE_RISCV
 
     extern const uint8_t bin_start[] asm("_binary_ulp_main_bin_start");
     extern const uint8_t bin_end[]   asm("_binary_ulp_main_bin_end");
 
-    STATIC mp_obj_t esp32_ulp_riscv_load_default_binary(mp_obj_t self_in) {
+    static mp_obj_t esp32_ulp_riscv_load_default_binary(mp_obj_t self_in) {
         int _errno = ulp_riscv_load_binary(bin_start,(bin_end-bin_start));
 
         if (_errno != ESP_OK) {
@@ -108,9 +108,9 @@ static MP_DEFINE_CONST_FUN_OBJ_3(esp32_ulp_set_wakeup_period_obj, esp32_ulp_set_
         }
         return mp_const_none;
     }
-    STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_load_default_binary_obj, esp32_ulp_riscv_load_default_binary);
+    static MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_load_default_binary_obj, esp32_ulp_riscv_load_default_binary);
 
-    STATIC mp_obj_t esp32_ulp_riscv_load_binary(mp_obj_t self_in, mp_obj_t program_binary_in) {
+    static mp_obj_t esp32_ulp_riscv_load_binary(mp_obj_t self_in, mp_obj_t program_binary_in) {
         mp_buffer_info_t bufinfo;
         mp_get_buffer_raise(program_binary_in, &bufinfo, MP_BUFFER_READ);
         int _errno = ulp_riscv_load_binary(bufinfo.buf, bufinfo.len);
@@ -120,9 +120,9 @@ static MP_DEFINE_CONST_FUN_OBJ_3(esp32_ulp_set_wakeup_period_obj, esp32_ulp_set_
         }
         return mp_const_none;
     }
-    STATIC MP_DEFINE_CONST_FUN_OBJ_2(esp32_ulp_riscv_load_binary_obj, esp32_ulp_riscv_load_binary);
+    static MP_DEFINE_CONST_FUN_OBJ_2(esp32_ulp_riscv_load_binary_obj, esp32_ulp_riscv_load_binary);
 
-    STATIC mp_obj_t esp32_ulp_riscv_run(mp_obj_t self_in) {
+    static mp_obj_t esp32_ulp_riscv_run(mp_obj_t self_in) {
 
         int _errno = ulp_riscv_run();
         if (_errno != ESP_OK) {
@@ -130,46 +130,46 @@ static MP_DEFINE_CONST_FUN_OBJ_3(esp32_ulp_set_wakeup_period_obj, esp32_ulp_set_
         }
         return mp_const_none;
     }
-    STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_run_obj, esp32_ulp_riscv_run);
+    static MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_run_obj, esp32_ulp_riscv_run);
 
-    // STATIC mp_obj_t esp32_ulp_riscv_reset(mp_obj_t self_in) {
+    // static mp_obj_t esp32_ulp_riscv_reset(mp_obj_t self_in) {
     //
     //     ulp_riscv_reset();
     //     return mp_const_none;
     // }
-    // STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_reset_obj, esp32_ulp_riscv_reset);
+    // static MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_reset_obj, esp32_ulp_riscv_reset);
 
-    STATIC mp_obj_t esp32_ulp_riscv_halt(mp_obj_t self_in) {
+    static mp_obj_t esp32_ulp_riscv_halt(mp_obj_t self_in) {
 
         ulp_riscv_halt();
         return mp_const_none;
     }
-    STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_halt_obj, esp32_ulp_riscv_halt);
+    static MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_halt_obj, esp32_ulp_riscv_halt);
 
-    STATIC mp_obj_t esp32_ulp_riscv_timer_stop(mp_obj_t self_in) {
+    static mp_obj_t esp32_ulp_riscv_timer_stop(mp_obj_t self_in) {
 
         ulp_riscv_timer_stop();
         return mp_const_none;
     }
-    STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_timer_stop_obj, esp32_ulp_riscv_timer_stop);
+    static MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_timer_stop_obj, esp32_ulp_riscv_timer_stop);
 
 
-    STATIC mp_obj_t esp32_ulp_riscv_timer_resume(mp_obj_t self_in) {
+    static mp_obj_t esp32_ulp_riscv_timer_resume(mp_obj_t self_in) {
 
         ulp_riscv_timer_resume();
         return mp_const_none;
     }
-    STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_timer_resume_obj, esp32_ulp_riscv_timer_resume);
+    static MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_timer_resume_obj, esp32_ulp_riscv_timer_resume);
 
     // #include "ulp_genhdr/ulp_my_main.h"
-    // STATIC mp_obj_t esp32_ulp_riscv_get_var(mp_obj_t self_in) {
+    // static mp_obj_t esp32_ulp_riscv_get_var(mp_obj_t self_in) {
     //     return MP_OBJ_NEW_SMALL_INT(ulp_spi_result);
     // }
-    // STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_get_var_obj, esp32_ulp_riscv_get_var);
+    // static MP_DEFINE_CONST_FUN_OBJ_1(esp32_ulp_riscv_get_var_obj, esp32_ulp_riscv_get_var);
 #endif
 
 
-#if (CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3) && CONFIG_ULP_COPROC_TYPE_RISCV
+#if ((CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3) && CONFIG_ULP_COPROC_TYPE_RISCV)
     #include "ulp_genhdr/esp32_ulpconst_qstr.h"
 #endif
 
