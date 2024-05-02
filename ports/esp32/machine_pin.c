@@ -286,8 +286,8 @@ static MP_DEFINE_CONST_FUN_OBJ_1(machine_pin_on_obj, machine_pin_on);
 // pin.rtc_init()
 static mp_obj_t machine_pin_rtc_init(mp_obj_t self_in) {
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
-    if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
-        rtc_gpio_init(PIN_OBJ_INDEX(self));
+    if (rtc_gpio_is_valid_gpio(PIN_OBJ_PTR_INDEX(self))) {
+        rtc_gpio_init(PIN_OBJ_PTR_INDEX(self));
     }
     return mp_const_none;
 }
@@ -297,8 +297,8 @@ static MP_DEFINE_CONST_FUN_OBJ_1(machine_pin_rtc_init_obj, machine_pin_rtc_init)
 static mp_obj_t machine_pin_rtc_set_direction(mp_obj_t self_in,mp_obj_t pin_io_mode_in) {
     mp_int_t pin_io_mode = mp_obj_get_int(pin_io_mode_in);
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
-    if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
-        rtc_gpio_set_direction(PIN_OBJ_INDEX(self),pin_io_mode);
+    if (rtc_gpio_is_valid_gpio(PIN_OBJ_PTR_INDEX(self))) {
+        rtc_gpio_set_direction(PIN_OBJ_PTR_INDEX(self),pin_io_mode);
     }
     return mp_const_none;
 }
@@ -308,8 +308,8 @@ static MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_set_direction_obj, machine_pin_
 static mp_obj_t machine_pin_rtc_set_level(mp_obj_t self_in,mp_obj_t level_in) {
     mp_int_t level = mp_obj_get_int(level_in);
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
-    if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
-        rtc_gpio_set_level(PIN_OBJ_INDEX(self), level);
+    if (rtc_gpio_is_valid_gpio(PIN_OBJ_PTR_INDEX(self))) {
+        rtc_gpio_set_level(PIN_OBJ_PTR_INDEX(self), level);
     }
     return mp_const_none;
 }
@@ -319,11 +319,11 @@ static MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_set_level_obj, machine_pin_rtc_
 static mp_obj_t machine_pin_rtc_pullup(mp_obj_t self_in,mp_obj_t onoff_in) {
     mp_int_t onoff = mp_obj_get_int(onoff_in);
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
-    if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
+    if (rtc_gpio_is_valid_gpio(PIN_OBJ_PTR_INDEX(self))) {
         if (onoff){
-            rtc_gpio_pullup_en(PIN_OBJ_INDEX(self));
+            rtc_gpio_pullup_en(PIN_OBJ_PTR_INDEX(self));
         } else {
-            rtc_gpio_pullup_dis(PIN_OBJ_INDEX(self));
+            rtc_gpio_pullup_dis(PIN_OBJ_PTR_INDEX(self));
         }
     }
     return mp_const_none;
@@ -334,11 +334,11 @@ static MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_pullup_obj, machine_pin_rtc_pul
 static mp_obj_t machine_pin_rtc_pulldown(mp_obj_t self_in,mp_obj_t onoff_in) {
     mp_int_t onoff = mp_obj_get_int(onoff_in);
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
-    if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
+    if (rtc_gpio_is_valid_gpio(PIN_OBJ_PTR_INDEX(self))) {
         if (onoff){
-            rtc_gpio_pulldown_en(PIN_OBJ_INDEX(self));
+            rtc_gpio_pulldown_en(PIN_OBJ_PTR_INDEX(self));
         } else {
-            rtc_gpio_pulldown_dis(PIN_OBJ_INDEX(self));
+            rtc_gpio_pulldown_dis(PIN_OBJ_PTR_INDEX(self));
         }
     }
     return mp_const_none;
@@ -349,11 +349,11 @@ static MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_pulldown_obj, machine_pin_rtc_p
 static mp_obj_t machine_pin_rtc_hold(mp_obj_t self_in,mp_obj_t onoff_in) {
     mp_int_t onoff = mp_obj_get_int(onoff_in);
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
-    if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
+    if (rtc_gpio_is_valid_gpio(PIN_OBJ_PTR_INDEX(self))) {
         if (onoff){
-            rtc_gpio_hold_en(PIN_OBJ_INDEX(self));
+            rtc_gpio_hold_en(PIN_OBJ_PTR_INDEX(self));
         } else {
-            rtc_gpio_hold_dis(PIN_OBJ_INDEX(self));
+            rtc_gpio_hold_dis(PIN_OBJ_PTR_INDEX(self));
         }
     }
     return mp_const_none;
@@ -363,8 +363,8 @@ static MP_DEFINE_CONST_FUN_OBJ_2(machine_pin_rtc_hold_obj, machine_pin_rtc_hold)
 // pin.rtc_deinit(state)
 static mp_obj_t machine_pin_rtc_deinit(mp_obj_t self_in) {
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
-    if (rtc_gpio_is_valid_gpio(PIN_OBJ_INDEX(self))) {
-        rtc_gpio_deinit(PIN_OBJ_INDEX(self));
+    if (rtc_gpio_is_valid_gpio(PIN_OBJ_PTR_INDEX(self))) {
+        rtc_gpio_deinit(PIN_OBJ_PTR_INDEX(self));
     }
     return mp_const_none;
 }
