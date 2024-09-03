@@ -280,7 +280,7 @@ static mp_obj_t machine_pin_conf_out(mp_obj_t self_in) {
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
     int idx = PIN_OBJ_PTR_INDEX(self);
 
-    gpio_reset_pint(idx);
+    gpio_reset_pin(idx);
 
     gpio_config_t io_conf = {};
     //disable interrupt
