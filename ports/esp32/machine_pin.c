@@ -278,7 +278,7 @@ static MP_DEFINE_CONST_FUN_OBJ_1(machine_pin_off_obj, machine_pin_off);
 // pin.conf()
 static mp_obj_t machine_pin_conf_out(mp_obj_t self_in) {
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
-    int idx = PIN_OBJ_PTR_INDEX(self)
+    int idx = PIN_OBJ_PTR_INDEX(self);
     gpio_config_t io_conf = {};
     //disable interrupt
     io_conf.intr_type = GPIO_INTR_DISABLE;
