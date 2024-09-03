@@ -275,6 +275,27 @@ static mp_obj_t machine_pin_off(mp_obj_t self_in) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(machine_pin_off_obj, machine_pin_off);
 
+// pin.conf()
+static mp_obj_t machine_pin_conf_out(mp_obj_t self_in) {
+    machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    int idx = PIN_OBJ_PTR_INDEX(self)
+    gpio_config_t io_conf = {};
+    //disable interrupt
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    //set as output mode
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    //bit mask of the pins that you want to set,e.g.GPIO18/19
+    io_conf.pin_bit_mask = (1ULL<<idx);
+    //disable pull-down mode
+    io_conf.pull_down_en = 0;
+    //disable pull-up mode
+    io_conf.pull_up_en = 0;
+    //configure GPIO with the given settings
+    gpio_config(&io_conf);
+    return mp_const_none;
+}
+static MP_DEFINE_CONST_FUN_OBJ_1(machine_pin_conf_out_obj, machine_pin_conf_out);
+
 // pin.on()
 static mp_obj_t machine_pin_on(mp_obj_t self_in) {
     machine_pin_obj_t *self = MP_OBJ_TO_PTR(self_in);
@@ -449,6 +470,7 @@ static const mp_rom_map_elem_t machine_pin_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_value), MP_ROM_PTR(&machine_pin_value_obj) },
     { MP_ROM_QSTR(MP_QSTR_off), MP_ROM_PTR(&machine_pin_off_obj) },
     { MP_ROM_QSTR(MP_QSTR_on), MP_ROM_PTR(&machine_pin_on_obj) },
+    { MP_ROM_QSTR(MP_QSTR_conf_out), MP_ROM_PTR(&machine_pin_conf_out_obj) },
     { MP_ROM_QSTR(MP_QSTR_rtc_init), MP_ROM_PTR(&machine_pin_rtc_init_obj) },
     { MP_ROM_QSTR(MP_QSTR_rtc_set_direction), MP_ROM_PTR(&machine_pin_rtc_set_direction_obj) },
     { MP_ROM_QSTR(MP_QSTR_rtc_set_level), MP_ROM_PTR(&machine_pin_rtc_set_level_obj) },
