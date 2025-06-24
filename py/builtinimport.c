@@ -356,6 +356,14 @@ static void unregister_module_from_nlr_jump_callback(void *ctx_in) {
     mp_map_lookup(mp_loaded_modules_map, MP_OBJ_NEW_QSTR(ctx->name), MP_MAP_LOOKUP_REMOVE_IF_FOUND);
 }
 
+void vstr_ins_str(vstr_t *vstr, size_t pos, const char *str) {
+    size_t len = strlen(str);
+    for (size_t i = 0; i < len; i++) {
+        vstr_ins_byte(vstr, pos, str[len - 1 - i]);
+    }
+}
+
+
 // Load a module at the specified absolute path, possibly as a submodule of the given outer module.
 // full_mod_name:    The full absolute path up to this level (e.g. "foo.bar.baz").
 // level_mod_name:   The final component of the path (e.g. "baz").
@@ -441,6 +449,12 @@ static mp_obj_t process_import_at_level(qstr full_mod_name, qstr level_mod_name,
             vstr_add_str(&path, qstr_str(level_mod_name));
 
             stat = stat_module(&path);
+            if (stat == MP_IMPORT_STAT_NO_EXIST) {
+                // try also with the same path but in the frozen modules since we might just try to overload a single module from a package
+                vstr_ins_str(&path, 0, ".frozen/");
+                vstr_cut_out_bytes(&path,path.len-4,4);
+                stat = stat_module(&path);
+            }
         }
     }
 

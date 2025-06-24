@@ -1,3 +1,7 @@
+
+set(ULP_GENHDR_DIR "${CMAKE_BINARY_DIR}/ulp_genhdr")
+set(ULP_MAIN_HEADER "${ULP_GENHDR_DIR}/ulp_my_main.h")
+
 # Set location of base MicroPython directory.
 if(NOT MICROPY_DIR)
     get_filename_component(MICROPY_DIR ${CMAKE_CURRENT_LIST_DIR}/../.. ABSOLUTE)
@@ -22,6 +26,8 @@ if(NOT CMAKE_BUILD_EARLY_EXPANSION)
     include(${MICROPY_DIR}/py/usermod.cmake)
     include(${MICROPY_DIR}/extmod/extmod.cmake)
 endif()
+
+# include(/home/martin/workspace/luchsio/esp32/micropython-docker/micropython-modules/camera/micropython.cmake)
 
 list(APPEND MICROPY_QSTRDEFS_PORT
     ${MICROPY_PORT_DIR}/qstrdefsport.h
@@ -103,6 +109,7 @@ list(APPEND MICROPY_SOURCE_QSTR
 )
 
 list(APPEND IDF_COMPONENTS
+    esp32-camera
     app_update
     bootloader_support
     bt
@@ -192,8 +199,8 @@ target_include_directories(${MICROPY_TARGET} PUBLIC
 )
 
 # Add additional extmod and usermod components.
-target_link_libraries(${MICROPY_TARGET} micropy_extmod_btree)
-target_link_libraries(${MICROPY_TARGET} usermod)
+target_link_libraries(${MICROPY_TARGET} PRIVATE micropy_extmod_btree)
+target_link_libraries(${MICROPY_TARGET} PRIVATE usermod)
 
 # Collect all of the include directories and compile definitions for the IDF components,
 # including those added by the IDF Component Manager via idf_components.yaml.
@@ -201,6 +208,16 @@ foreach(comp ${__COMPONENT_NAMES_RESOLVED})
     micropy_gather_target_properties(__idf_${comp})
     micropy_gather_target_properties(${comp})
 endforeach()
+
+
+# Include riscv ulp code if exists in ulp_riscv sub directory
+if(EXISTS ${PROJECT_DIR}/ulp_riscv/main.c)
+    list(APPEND MICROPY_SOURCE_QSTR ${ULP_MAIN_HEADER})
+    set(ulp_app_name ulp_main)
+    set(ulp_sources "${PROJECT_DIR}/ulp_riscv/main.c")
+    set(ulp_exp_dep_srcs "${PROJECT_DIR}/main.c" "${PROJECT_DIR}/esp32_ulp.c")
+    ulp_embed_binary(${ulp_app_name} "${ulp_sources}" "${ulp_exp_dep_srcs}")
+endif()
 
 # Include the main MicroPython cmake rules.
 include(${MICROPY_DIR}/py/mkrules.cmake)
@@ -231,3 +248,28 @@ add_custom_command(
     VERBATIM
     COMMAND_EXPAND_LISTS
 )
+
+# Generate ULP variable constants
+if(EXISTS ${PROJECT_DIR}/ulp_riscv/main.c)
+      target_include_directories(${MICROPY_TARGET} PRIVATE ${CMAKE_BINARY_DIR})
+      add_custom_command(
+          OUTPUT ${ULP_MAIN_HEADER}
+          COMMAND python ${PROJECT_DIR}/make-esp32ulpconst.py create-for-embedded ${ulp_app_name}/${ulp_app_name}.ld -d ${ULP_GENHDR_DIR} --header ulp_my_main.h
+          DEPENDS ulp_main_artifacts
+          COMMENT "Parsing ULP headers"
+          VERBATIM
+      )
+      add_custom_target(ulp_main_additional_artifacts
+          COMMAND echo "This is ALL target 'zoo', and it depends on "
+          DEPENDS ${ULP_MAIN_HEADER}
+          VERBATIM
+      )
+      target_sources(${MICROPY_TARGET} PRIVATE ${ULP_MAIN_HEADER})
+      add_dependencies(__idf_ulp ulp_main_additional_artifacts)
+      set_source_files_properties(${ulp_exp_dep_srcs} PROPERTIES OBJECT_DEPENDS ${ULP_MAIN_HEADER})
+      set_property(SOURCE ${ulp_exp_dep_srcs} APPEND PROPERTY OBJECT_DEPENDS ${ULP_MAIN_HEADER})
+endif()
+
+add_custom_target(graphviz ALL
+      "${CMAKE_COMMAND}" "--graphviz=micropython.dot" .
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")

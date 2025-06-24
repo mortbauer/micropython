@@ -172,9 +172,19 @@ static void machine_sleep_helper(wake_type_t wake_type, size_t n_args, const mp_
 
     #endif
 
+    esp_err_t ret;
     switch (wake_type) {
         case MACHINE_WAKE_SLEEP:
-            esp_light_sleep_start();
+            ret = esp_light_sleep_start();
+            if (ret != ESP_OK) {
+                if (ret == ESP_ERR_SLEEP_REJECT){
+                    mp_raise_ValueError(MP_ERROR_TEXT("Failed entering light sleep: sleep reject"));
+                } else if (ret == ESP_ERR_SLEEP_TOO_SHORT_SLEEP_DURATION){
+                    mp_raise_ValueError(MP_ERROR_TEXT("Failed entering light sleep: duration to short"));
+                } else {
+                    mp_raise_ValueError(MP_ERROR_TEXT("Failed entering light sleep"));
+                }
+            }
             break;
         case MACHINE_WAKE_DEEPSLEEP:
             esp_deep_sleep_start();
