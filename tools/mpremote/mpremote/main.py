@@ -100,6 +100,9 @@ def argparse_connect():
     cmd_parser.add_argument(
         "device", nargs=1, help="Either list, auto, id:x, port:x, or any valid device name/path"
     )
+    cmd_parser.add_argument(
+        "--baudrate", "-b", nargs='?', default=115200, help="set an alternative baudrate",
+    )
     return cmd_parser
 
 
