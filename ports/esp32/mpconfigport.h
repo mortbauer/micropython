@@ -79,7 +79,9 @@
 // control over Python builtins
 #define MICROPY_PY_STR_BYTES_CMP_WARN       (1)
 #define MICROPY_PY_ALL_INPLACE_SPECIAL_METHODS (1)
+#ifndef MICROPY_PY_BUILTINS_HELP_TEXT
 #define MICROPY_PY_BUILTINS_HELP_TEXT       esp32_help_text
+#endif
 #define MICROPY_PY_IO_BUFFEREDWRITER        (1)
 #define MICROPY_PY_TIME_GMTIME_LOCALTIME_MKTIME (1)
 #define MICROPY_PY_TIME_TIME_TIME_NS        (1)
