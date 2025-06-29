@@ -183,7 +183,9 @@
 #define MICROPY_PY_SSL                      (1)
 #define MICROPY_SSL_MBEDTLS                 (1)
 #define MICROPY_PY_WEBSOCKET                (1)
-#define MICROPY_PY_WEBREPL                  (1)
+#ifndef MICROPY_PY_WEBREPL
+#define MICROPY_PY_WEBREPL (1)
+#endif
 #define MICROPY_PY_ONEWIRE                  (1)
 #define MICROPY_PY_SOCKET_EVENTS            (MICROPY_PY_WEBREPL)
 #define MICROPY_PY_BLUETOOTH_RANDOM_ADDR    (1)
